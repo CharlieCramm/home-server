@@ -1,0 +1,40 @@
+version: "3.3"
+
+services:
+
+  traefik:
+    image: "traefik:v2.8.1"
+    container_name: "traefik"
+    labels:
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.tlsredirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.compress.compress=true"
+      - "traefik.http.middlewares.inflight.inflightreq.amount=10"
+      - "traefik.http.middlewares.retry.retry.attempts=4"
+      # HTTP
+      - "traefik.http.routers.traefik-http.rule=Host(`traefik.atomicc.be`)"
+      - "traefik.http.routers.traefik-http.entrypoints=http"
+      - "traefik.http.routers.traefik-http.middlewares=https-redirect"
+      # HTTPS
+      - "traefik.http.routers.traefik-https.rule=Host(`traefik.atomicc.be`)"
+      - "traefik.http.routers.traefik-https.entrypoints=https"
+      - "traefik.http.routers.traefik-https.tls=true"
+      - "traefik.http.routers.traefik-https.tls.certResolver=letsencrypt"
+      - "traefik.http.routers.traefik-https.service=api@internal"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    restart: unless-stopped
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./logs/:/logs"
+      - "./traefik.yaml:/etc/traefik/traefik.yaml"
+      - "./dynamic_conf.yaml:/etc/traefik/dynamic_conf.yaml"
+    networks:
+      - web
+
+networks:
+  web:
+   external: true

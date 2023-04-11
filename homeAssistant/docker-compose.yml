@@ -1,0 +1,60 @@
+version: '3.7'
+
+services:
+############################# Database
+  database:
+    image: postgres:${POSTGRES_TAG:-latest}
+    restart: unless-stopped
+    volumes:
+      - ./data/database:/var/lib/postgresql/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1k"
+        max-file: "10"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - default
+############################# Home Assistant
+  homeassistant:
+    #network_mode: host
+    image: homeassistant/home-assistant:${HOMEASSISTANT_TAG:-latest}
+    restart: unless-stopped
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - ./data/homeassistant:/config
+      - /dev/serial/by-id:/dev/serial/by-id
+    networks:
+      - web
+      - default
+    ports:
+      - 8123:8123
+    depends_on:
+      - database
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1k"
+        max-file: "10"
+    labels:
+        - "traefik.enable=true"
+        # HTTPS Rules
+        - "traefik.http.routers.HA_SSL.rule=Host(`home.atomicc.be`)"
+        - "traefik.http.routers.HA_SSL.entrypoints=https"
+        - "traefik.http.routers.HA_SSL.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.HA_SSL.tls=true"
+        - "traefik.http.services.HA_SSL.loadbalancer.server.port=8123"
+        # HTTP
+        - "traefik.http.routers.HA.rule=Host(`home.atomicc.be`)"
+        - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+        - "traefik.http.routers.HA.entrypoints=http"
+        - "traefik.http.routers.HA.middlewares=https-redirect"
+networks:
+  web:
+   external: true
+  default:
+
+

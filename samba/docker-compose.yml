@@ -1,0 +1,12 @@
+version: '3.3'
+services:
+    samba:
+        container_name: samba
+        ports:
+            - '139:139'
+            - '445:445'
+        volumes:
+            - '/:/mount'
+        image: dperson/samba
+        SHARE: 'shared;/shared;yes;no;yes;all;none;;comment1'
+        USER: 'atomic;GHS137qt'

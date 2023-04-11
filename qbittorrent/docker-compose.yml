@@ -1,0 +1,45 @@
+---
+version: "2.1"
+services:
+  qbittorrent:
+    image: ghcr.io/linuxserver/qbittorrent:4.4.5-r0-ls221
+      #image: ghcr.io/linuxserver/qbittorrent:4.3.8
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+      - WEBUI_PORT=8090
+    volumes:
+      - ./config:/config
+      - ./downloads:/downloads
+    ports:
+      - 6881:6881
+      - 6881:6881/udp
+      - 8090:8090
+    restart: unless-stopped
+    networks:
+      default:
+        ipv4_address: 172.30.0.5
+    networks:
+      - web
+      - default
+    labels:
+        - "traefik.enable=true"
+        # HTTPS Rules
+        - "traefik.http.routers.qbittorrent_SSL.rule=Host(`qbit.atomicc.be`)"
+        - "traefik.http.routers.qbittorrent_SSL.entrypoints=https"
+        - "traefik.http.routers.qbittorrent_SSL.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.qbittorrent_SSL.tls=true"
+        - "traefik.http.services.qbittorrent_SSL.loadbalancer.server.port=8090"
+        # HTTP
+        - "traefik.http.routers.qbittorrent.rule=Host(`qbit.atomicc.be`)"
+        - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+        - "traefik.http.routers.qbittorrent.entrypoints=http"
+        - "traefik.http.routers.qbittorrent.middlewares=https-redirect"
+networks:
+ web:
+   external: true
+ default:
+   external:
+     name: sonarr_bittorrent

@@ -1,0 +1,42 @@
+---
+version: "2.1"
+services:
+  emby:
+    image: ghcr.io/linuxserver/emby:4.7.8.0-ls132
+    container_name: emby
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+    volumes:
+      - ./config:/config
+      - ../sonarr/tvshows:/data/tvshows
+      - ../radarr/movies:/data/movies
+      - ../sonarr/anime:/data/anime
+      - /opt/vc/lib:/opt/vc/lib #optional
+    ports:
+      - 8096:8096
+      - 8920:8920 #optional
+    restart: unless-stopped
+    networks:
+        - web
+        - default
+    labels:
+        - "traefik.enable=true"
+        # HTTPS Rules
+        - "traefik.http.routers.emby_SSL.rule=Host(`emby.atomicc.be`)"
+        - "traefik.http.routers.emby_SSL.entrypoints=https"
+        - "traefik.http.routers.emby_SSL.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.emby_SSL.tls=true"
+        - "traefik.http.services.emby_SSL.loadbalancer.server.port=8096"
+        # HTTP
+        - "traefik.http.routers.emby.rule=Host(`emby.atomicc.be`)"
+        - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+        - "traefik.http.routers.emby.entrypoints=http"
+        - "traefik.http.routers.emby.middlewares=https-redirect"
+networks:
+ web:
+   external: true
+ default:
+    external:
+      name: sonarr_bittorrent
