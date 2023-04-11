@@ -1,0 +1,39 @@
+version: "2.1"
+services:
+  radarr:
+    #image: ghcr.io/linuxserver/radarr:4.2.4.6635-ls153
+    image: ghcr.io/linuxserver/radarr:4.3.2.6857-ls164
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+    volumes:
+      - ./config:/config
+      - ./movies:/movies
+      - ../qbittorrent/downloads:/downloads
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+    networks:
+      - web
+      - default
+    labels:
+        - "traefik.enable=true"
+        # HTTPS Rules
+        - "traefik.http.routers.radarr_SSL.rule=Host(`radarr.atomicc.be`)"
+        - "traefik.http.routers.radarr_SSL.entrypoints=https"
+        - "traefik.http.routers.radarr_SSL.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.radarr_SSL.tls=true"
+        - "traefik.http.services.radarr_SSL.loadbalancer.server.port=7878"
+        # HTTP
+        - "traefik.http.routers.radarr.rule=Host(`radarr.atomicc.be`)"
+        - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+        - "traefik.http.routers.radarr.entrypoints=http"
+        - "traefik.http.routers.radarr.middlewares=https-redirect"
+networks:
+ web:
+   external: true
+ default:
+    external:
+      name: sonarr_bittorrent

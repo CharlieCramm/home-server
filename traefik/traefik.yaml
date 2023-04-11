@@ -1,0 +1,29 @@
+api:
+  insecure: true
+providers:
+  docker: true
+providers:
+  docker:
+    exposedbydefault: false
+    network: web
+  file:
+   filename: /etc/traefik/dynamic_conf.yaml
+entrypoints:
+  http:
+    address: ":80"
+  https:
+    address: ":443"
+certificatesresolvers:
+  letsencrypt:
+    acme:
+      httpchallenge:
+        entrypoint: http
+      email: charlie.cramm.cc@gmail.com
+      storage: /letsencrypt/acme.json
+accessLog:
+  filePath: /logs/access.log
+  bufferingSize: 100
+log:
+  level: ERROR
+global:
+    sendAnonymousUsage: false

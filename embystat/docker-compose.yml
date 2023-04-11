@@ -1,0 +1,12 @@
+embystat:
+    image: ghcr.io/linuxserver/embystat
+    container_name: embystat
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+    volumes:
+      - ./config:/config
+    ports:
+      - 6555:6555
+    restart: unless-stopped

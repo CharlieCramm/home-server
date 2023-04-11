@@ -1,0 +1,25 @@
+traefik/letsencrypt
+# this can contain sensitive data
+traefik/logs
+
+emby/*
+!emby/docker-compose.yml
+
+embystat/config
+homeAssistant/data
+jackett/Torrents
+jackett/config
+lancache/*
+!lancache/docker-compose.yml
+portainer/portainer-data
+qbittorrent/*
+!qbittorrent/docker-compose.yml
+qbittorrentvpn/*
+!qbittorrentvpn/docker-compose.yml
+radarr/*
+!radarr/docker-compose.yml
+sonarr/*
+!sonarr/docker-compose.yml
+tdarr/*
+!tdarr/docker-compose.yml
+heimdall/config
